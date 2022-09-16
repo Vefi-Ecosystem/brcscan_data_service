@@ -105,6 +105,23 @@ router.get('/tokens', async (req, res) => {
   }
 });
 
+router.get('/tokens/search/:name', async (req, res) => {
+  try {
+    const allRedisKeys = await getAllKeysMatchingPattern(redisTokensKey);
+    let result = [];
+
+    for (const key of allRedisKeys) {
+      const token = await getItem(key);
+      result = [...result, JSON.parse(token)];
+    }
+
+    result = result.find(token => token.name.toLowerCase() === req.params.name.toLowerCase());
+    return res.status(200).json({ result });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/addresses/count', async (req, res) => {
   try {
     const transactionsKeyExists = await checkIfItemExists(redisTransactionsKey);
